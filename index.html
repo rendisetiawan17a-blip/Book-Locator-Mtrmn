@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRAMEDIA - Inventaris Buku Cloud Synced</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>📚 Gramedia Book Locator</h1>
+        <p>Sistem Inventaris Buku Sederhana. Data tersimpan di Google Sheets (HP & PC sinkron).</p>
+    </header>
+
+    <main>
+        <section class="card" id="search-section">
+            <h2>🔎 Cari Buku</h2>
+            <div class="search-controls">
+                <input type="text" id="searchInput" placeholder="Masukkan Judul, Pengarang, atau ISBN">
+                <button onclick="searchBook()"><i class="fas fa-search"></i></button>
+            </div>
+            <div id="searchResults" class="results-container">
+                </div>
+        </section>
+
+        <section class="card" id="input-section">
+            <h2>➕ Input Buku Baru</h2>
+            <form id="newBookForm">
+                <div class="form-group">
+                    <label for="newTitle">Judul Buku:</label>
+                    <input type="text" id="newTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="newAuthor">Pengarang:</label>
+                    <input type="text" id="newAuthor" required>
+                </div>
+                <div class="form-group">
+                    <label for="newIsbn">ISBN (13 Digit):</label>
+                    <input type="text" id="newIsbn" required pattern="\d{13}">
+                </div>
+                <div class="form-group">
+                    <label for="newLocation">Nomor Rak/Lokasi:</label>
+                    <input type="text" id="newLocation" required>
+                </div>
+                <button type="submit"><i class="fas fa-plus"></i> Tambahkan Buku</button>
+                <p id="inputMessage" class="message-text"></p>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Gramedia Book Locator</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
