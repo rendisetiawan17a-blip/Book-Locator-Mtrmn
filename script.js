@@ -1,9 +1,9 @@
 // =========================================================================
-// I. KONFIGURASI API (Google Apps Script URL)
+// KODE JAVASCRIPT: script.js (Cloud-Synced Version)
 // =========================================================================
 
-// ⚠️ WAJIB GANTI URL INI
-const API_URL = 'https://script.google.com/macros/s/AKfycbxABqLtyqycUOxZ-ScdXkP7-hUVZ5Yvd9huqNy1_CqoaQRaumRpe40QtPq2J5sKIyyo/exec'; 
+// ⚠️ PASTI INI SUDAH DI GANTI DENGAN URL WEB APP YANG ANDA DAPATKAN DARI DEPLOYMENT
+const API_URL = 'https://script.google.com/macros/s/AKfycbyFtfvO8pPPtWUuB2pZy49RpZsMYoyMb5xPTEKQAm35t2pSg6yQ4wHyg1fi3J7-cdkw/exec'; 
 
 let bookDatabase = []; 
 
@@ -14,7 +14,7 @@ function generateUniqueId() {
 // --- FUNGSI UTAMA: Ambil Data dari Cloud ---
 async function fetchBooks() {
     const resultsContainer = document.getElementById('searchResults');
-    resultsContainer.innerHTML = '<p class="placeholder-text loading-text"><i class="fas fa-sync fa-spin"></i> Mengambil data dari Cloud...</p>';
+    resultsContainer.innerHTML = '<p class="placeholder-text loading-text">⏳ Memuat data dari Cloud...</p>';
     
     try {
         const response = await fetch(`${API_URL}?action=read`);
@@ -30,19 +30,20 @@ async function fetchBooks() {
                     location: book.lokasi
                 }));
             
-            searchBook();
+            searchBook(true); 
         } else {
             resultsContainer.innerHTML = `<p class="message-text error-message">❌ Gagal membaca data dari Sheets: ${result.message}</p>`;
         }
     } catch (error) {
-        resultsContainer.innerHTML = '<p class="message-text error-message">❌ Koneksi ke API gagal. Pastikan URL Apps Script benar.</p>';
+        // Error di sini menunjukkan masalah pada API URL atau koneksi
+        resultsContainer.innerHTML = '<p class="message-text error-message">❌ Koneksi ke API gagal. Cek URL Apps Script Anda (Pastikan sudah Deploy).</p>';
         console.error("Fetch error:", error);
     }
 }
 
 
 // --- FUNGSI PENCARIAN & TAMPILAN ---
-function searchBook() {
+function searchBook(isInitialLoad = false) {
     const searchInput = document.getElementById('searchInput').value.toLowerCase().trim();
     const resultsContainer = document.getElementById('searchResults');
     let resultsHTML = '';
@@ -53,79 +54,35 @@ function searchBook() {
                book.isbn && book.isbn.includes(searchInput);
     });
 
-    if (bookDatabase.length === 0 && searchInput.length === 0) {
+    if (bookDatabase.length === 0) {
         resultsHTML = '<p class="placeholder-text">Database kosong. Silakan input buku baru untuk memulai.</p>';
     } else if (filteredBooks.length > 0) {
         filteredBooks.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
         
         filteredBooks.forEach(book => {
+            // Struktur hasil pencarian disesuaikan
             resultsHTML += `
                 <div class="book-item">
                     <div class="book-details">
                         <strong>${book.title}</strong>
-                        <p>Pengarang: ${book.author} | ISBN: ${book.isbn}</p>
+                        <p>Pengarang: ${book.author}</p>
+                        <p>ISBN: ${book.isbn}</p>
                     </div>
-                    <div class="location-container">
-                        <span class="book-location" id="location-${book.id}">${book.location}</span>
-                        <button class="edit-location-btn" onclick="editLocation('${book.id}')" title="Ganti Nomor Rak">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
+                    <span class="book-location">Rak: ${book.location}</span>
                 </div>
             `;
         });
     } else if (searchInput.length > 0) {
         resultsHTML = '<p class="message-text error-message">❌ Maaf, buku tidak ditemukan.</p>';
-    } else {
-         resultsHTML = '<p class="placeholder-text">Masukkan kata kunci untuk mencari buku Anda.</p>';
+    } else if (isInitialLoad) {
+         resultsHTML = '<p class="placeholder-text">Hasil pencarian akan muncul di sini.</p>'; 
     }
 
     resultsContainer.innerHTML = resultsHTML;
 }
 
 
-// --- FUNGSI EDIT LOKASI ---
-window.editLocation = async function(id) {
-    const bookIndex = bookDatabase.findIndex(book => book.id.toString() === id.toString());
-    if (bookIndex === -1) {
-        alert("Buku tidak ditemukan!");
-        return;
-    }
-
-    const currentBook = bookDatabase[bookIndex];
-    const newLocation = prompt(`Masukkan Nomor Rak/Lokasi baru untuk buku "${currentBook.title}":`, currentBook.location);
-
-    if (newLocation === null || newLocation.trim() === "" || newLocation.trim().toUpperCase() === currentBook.location) {
-        return; 
-    }
-
-    const trimmedLocation = newLocation.trim().toUpperCase();
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'update',
-                id: id,
-                location: trimmedLocation
-            }),
-            headers: { 'Content-Type': 'application/json' }
-        });
-        const result = await response.json();
-
-        if (result.status === 'SUCCESS') {
-            alert(`Lokasi buku "${currentBook.title}" berhasil diubah menjadi ${trimmedLocation}. Data Cloud diperbarui!`);
-            fetchBooks(); 
-        } else {
-             alert(`Gagal update: ${result.message}`);
-        }
-    } catch (error) {
-        alert("Gagal koneksi ke API saat update.");
-    }
-}
-
-
-// --- FUNGSI INPUT DATA BARU ---
+// --- FUNGSI INPUT DATA BARU (Simpan ke Sheets) ---
 document.getElementById('newBookForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -176,7 +133,8 @@ document.getElementById('newBookForm').addEventListener('submit', async function
 
     } catch (error) {
         console.error("Error adding document: ", error);
-        inputMessage.textContent = '❌ Gagal koneksi ke API saat menambahkan data.';
+        // Error di sini menunjukkan masalah pada API URL atau koneksi
+        inputMessage.textContent = '❌ Gagal koneksi ke API saat menambahkan data. Cek URL Anda.';
         inputMessage.className = 'message-text error-message';
     }
 
