@@ -101,17 +101,14 @@ document.getElementById('newBookForm').addEventListener('submit', async function
         return;
     }
     
-   // ** KODE BARU DIMULAI DI SINI **
-    // Menggunakan URLSearchParams agar Apps Script mudah membaca data formulir
-    const newBookData = new URLSearchParams({
+    const newBookData = {
         action: 'create',
         id: generateUniqueId(),
-        // PASTIKAN NAMA KEY INI SESUAI DENGAN HEADER GOOGLE SHEETS ANDA (ID, Judul, Pengarang, ISBN, Lokasi)
-        judul: title, 
-        pengarang: author,
+        title: title,
+        author: author,
         isbn: isbn,
-        lokasi: location.toUpperCase()
-    });
+        location: location.toUpperCase()
+    };
     
     inputMessage.textContent = '⏳ Menyimpan data ke Cloud...';
     inputMessage.className = 'message-text';
@@ -119,11 +116,9 @@ document.getElementById('newBookForm').addEventListener('submit', async function
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
-            body: newBookData, // Menggunakan URLSearchParams sebagai body
-            // Menghapus headers: { 'Content-Type': 'application/json' } yang menyebabkan error 405
+            body: JSON.stringify(newBookData),
+            headers: { 'Content-Type': 'application/json' }
         });
-        const result = await response.json();
-    // ** KODE BARU SELESAI DI SINI **
         const result = await response.json();
 
         if (result.status === 'SUCCESS') {
